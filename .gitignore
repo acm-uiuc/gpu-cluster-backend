@@ -1,14 +1,21 @@
-# Binaries for programs and plugins
-*.exe
-*.dll
-*.so
-*.dylib
+.DS_Store
+.env
+.flaskenv
+*.pyc
+*.pyo
+env
+env*
+dist
+build
+*.egg
+*.egg-info
+_mailinglist
+.tox
+.cache/
+.idea/
 
-# Test binary, build with 
-*.test
-
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
-
-# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
-.glide/
+# Coverage reports
+htmlcov
+.coverage
+.coverage.*
+*,cover
