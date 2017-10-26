@@ -17,7 +17,7 @@ class CWDockerClient:
             c = self.client.containers.run('registry.gitlab.com/acm-uiuc/sigops/clearwaters-docker/ubuntu-mpich-arm64', cmd, detach=True)
         else:
             if(is_gpu):
-                c = self.client.containers.run(image, cmd, devices=self.gpu_devices, volume_driver=self.nvidia_driver, volume=self.nvidia_volume, detach=True)
+                c = self.client.containers.run(image, cmd, devices=self.gpu_devices, volume_driver=self.nvidia_driver, volumes=self.nvidia_volume, detach=True)
             else:
                 c = self.client.containers.run(image, cmd, detach=True)
             
