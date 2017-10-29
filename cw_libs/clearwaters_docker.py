@@ -4,10 +4,10 @@ import docker
 class CWDockerClient:
     client = None
 
-    gpu_devices = ['/dev/nvidiactl', '/dev/nvidia-uvm',
-                   '/dev/nvidia3', '/dev/nvidia2', '/dev/nvidia1', '/dev/nvidia0']
+    gpu_devices = ['/dev/nvidiactl', '/dev/nvidia-uvm', '/dev/nvidia1', '/dev/nvidia0']
     nvidia_driver = 'nvidia-docker'
     nvidia_volume = ['nvidia_driver_387.12:/usr/local/nvidia:ro']
+    ports = {'8888/tcp':8888}
     
     def __init__(self):
         self.client = docker.from_env(version='auto')
@@ -17,7 +17,7 @@ class CWDockerClient:
             c = self.client.containers.run('registry.gitlab.com/acm-uiuc/sigops/clearwaters-docker/ubuntu-mpich-arm64', cmd, detach=True)
         else:
             if(is_gpu):
-                c = self.client.containers.run(image, cmd, devices=self.gpu_devices, volume_driver=self.nvidia_driver, volumes=self.nvidia_volume, detach=True)
+                c = self.client.containers.run(image, cmd, ports=self.ports, devices=self.gpu_devices, volume_driver=self.nvidia_driver, volumes=self.nvidia_volume, detach=True)
             else:
                 c = self.client.containers.run(image, cmd, detach=True)
             
@@ -29,6 +29,7 @@ class CWDockerClient:
         
     def get_container_logs(self, cid):
         c = self.client.containers.get(cid)
+        print(c)
         return c.logs()
 
     def get_all_container_ids(self):
