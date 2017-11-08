@@ -7,7 +7,7 @@ class CWDockerClient:
     gpu_devices = ['/dev/nvidiactl', '/dev/nvidia-uvm', '/dev/nvidia1', '/dev/nvidia0']
     nvidia_driver = 'nvidia-docker'
     nvidia_volume = ['nvidia_driver_387.12:/usr/local/nvidia:ro']
-    ports = {'8888/tcp':8888}
+    ports = {'8888/tcp':8890}
     
     def __init__(self):
         self.client = docker.from_env(version='auto')
