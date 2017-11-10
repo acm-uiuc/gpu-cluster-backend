@@ -15,7 +15,7 @@ def update_acm_request():
         abort(400)
     print(request.json['image'])
     c_id = docker_client.create_container('', image = request.json['image'], is_gpu = True)
-    token = docker_client.run_cmd(c_id, 'python jupyter_get.py')
+    token = docker_client.run_cmd(c_id, 'python ../jupyter_get.py')
     print(token)
     return jsonify({'container_id' : c_id})
 
