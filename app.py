@@ -15,14 +15,8 @@ def update_acm_request():
         abort(400)
     print(request.json['image'])
     c_id = docker_client.create_container('', image = request.json['image'], is_gpu = True)
-    #c_logs = docker_client.get_container_logs(c_id)
-    c_logs = commands.getoutput('sudo docker logs '+c_id)
-    '''
-    while c_logs == '':
-        c_logs = docker_client.get_container_logs(c_id)
-        print(c_logs)    
-    '''
-    print(c_logs)
+    token = docker_client.run_cmd(c_id, 'python jupyter_get.py')
+    print(token)
     return jsonify({'container_id' : c_id})
 
 if __name__ == "__main__":
