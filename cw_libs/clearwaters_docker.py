@@ -56,5 +56,5 @@ class CWDockerClient:
 
     def run_cmd(self, cid, cmd):
         c = self.client.containers.get(cid)
-        print(c.exec_run(cmd))
+        return c.exec_run(cmd)
     
