@@ -13,9 +13,11 @@ class CWDockerClient:
         self.client = docker.from_env(version='auto')
         
     def create_container(self, cmd, image=None, is_gpu = False, port = None):
+        print(port) 
         if (port is not None):
             self.ports['8888/tcp'] = port
-            
+            print(self.ports['8888/tcp'])
+
         if(image is None):
             c = self.client.containers.run('registry.gitlab.com/acm-uiuc/sigops/clearwaters-docker/ubuntu-mpich-arm64', cmd, detach=True)
         else:
