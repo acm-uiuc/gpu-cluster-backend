@@ -8,16 +8,21 @@ app = Flask(__name__)
 CORS(app)
 PORT=5656
 docker_client = cwd.CWDockerClient()
+last_used_port = 8889
 
 @app.route('/create_container', methods=['POST'])
 def update_acm_request():
     if not request.json or 'image' not in request.json:
         abort(400)
     print(request.json['image'])
+    port = last_used_port + 1
+    last_used_port = port
     c_id = docker_client.create_container('', image = request.json['image'], is_gpu = True)
     token = docker_client.run_cmd(c_id, 'python ../jupyter_get.py')
-    print(token)
-    return jsonify({'container_id' : c_id})
+    
+    url = "http://vault.acm.illinois.edu:"+str(port)+"/?token="+str(token)
+    print(url)
+    return jsonify({'jupyter_url' : url})
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=PORT)
