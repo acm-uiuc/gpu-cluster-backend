@@ -12,19 +12,14 @@ class CWDockerClient:
     def __init__(self):
         self.client = docker.from_env(version='auto')
         
-    def create_container(self, cmd, image=None, is_gpu = False, port = None):
-        print(port) 
-        if (port is not None):
+    def create_container(self, cmd, image=None, is_gpu=False, port=None):
+        if port is not None:
             self.ports['8888/tcp'] = port
-            print(self.ports['8888/tcp'])
 
-        if(image is None):
-            c = self.client.containers.run('registry.gitlab.com/acm-uiuc/sigops/clearwaters-docker/ubuntu-mpich-arm64', cmd, detach=True)
+        if is_gpu:
+            c = self.client.containers.run(image, cmd, ports=self.ports, devices=self.gpu_devices, volume_driver=self.nvidia_driver, volumes=self.nvidia_volume, detach=True)
         else:
-            if(is_gpu):
-                c = self.client.containers.run(image, cmd, ports=self.ports, devices=self.gpu_devices, volume_driver=self.nvidia_driver, volumes=self.nvidia_volume, detach=True)
-            else:
-                c = self.client.containers.run(image, cmd, detach=True)
+            c = self.client.containers.run(image, cmd, detach=True)
             
         return c.id
 
@@ -34,7 +29,6 @@ class CWDockerClient:
         
     def get_container_logs(self, cid):
         c = self.client.containers.get(cid)
-        print(c)
         return c.logs()
 
     def get_all_container_ids(self):

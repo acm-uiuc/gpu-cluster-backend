@@ -15,16 +15,12 @@ def update_acm_request():
     global used_ports
     if not request.json or 'image' not in request.json:
         abort(400)
-    print(request.json['image'])
-    print(used_ports)
+
     port = used_ports + 1
     used_ports = port
-    print(used_ports)
     c_id = docker_client.create_container('', image = request.json['image'], is_gpu = True, port = port)
     token = docker_client.run_cmd(c_id, 'python ../jupyter_get.py')
-    
-    url = "http://vault.acm.illinois.edu:"+str(port)+"/?token="+str(token)
-    print(url)
+    url = "http://vault.acm.illinois.edu:{}/?token={}".format(port, token)
     return jsonify({'jupyter_url' : url})
 
 if __name__ == "__main__":
