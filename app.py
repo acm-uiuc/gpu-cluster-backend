@@ -8,7 +8,7 @@ import random
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Docker_Ports.sqlite'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/gpu_cluster.db'
 
 CORS(app)
 
