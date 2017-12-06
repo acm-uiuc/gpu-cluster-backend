@@ -19,3 +19,5 @@ htmlcov
 .coverage
 .coverage.*
 *,cover
+
+gpu_cluster

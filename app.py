@@ -37,9 +37,9 @@ def update_acm_request():
 def get_port():
     while True:
         rand_port = random.randint(80, 65535)
-        used_ports = Ports.query.filter_by(port = rand_port)
-        if (len(used_ports) == 0):
-            return rand_ports
+        used_ports = Ports.query.filter_by(port = rand_port).first()
+        if (used_ports is None):
+            return rand_port
     
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=PORT)
