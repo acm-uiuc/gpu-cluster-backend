@@ -9,7 +9,7 @@ import random
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/gpu_cluster/gpu_cluster_instances.db'
- 
+
 instance_store = SQLAlchemy(app)
 CORS(app)
 PORT=5656
@@ -48,7 +48,7 @@ def get_port():
         rand_port = random.randint(80, 65535)
         used_jports = instance_store.session.query(InstanceAssigment).filter_by(jupyter_port = rand_port).first()
         used_mports = instance_store.session.query(InstanceAssigment).filter_by(monitor_port = rand_port).first()
-        if (used_jports == None) or (used_mports == None):
+        if (used_jports == None) and (used_mports == None):
             return rand_port
     
 if __name__ == "__main__":
