@@ -1,25 +1,32 @@
 #Just testing the docker-py SDK
 import docker
 
-class CWDockerClient:
+class NVDockerClient:
     client = None
 
     gpu_devices = ['/dev/nvidiactl', '/dev/nvidia-uvm', '/dev/nvidia1', '/dev/nvidia0']
     nvidia_driver = 'nvidia-docker'
-    nvidia_volume = ['nvidia_driver_387.12:/usr/local/nvidia:ro']
-    ports = {'8888/tcp':8890}
+    volumes = {'nvidia_driver_387.12':{'bind':'/usr/local/nvidia', 'mode':'ro'},
+               '/vault':              {'bind':'/vault', 'mode':'rw'}}
+    ports = {'8888/tcp':8890,
+             '6006/tcp':6969}
     
     def __init__(self):
         self.client = docker.from_env(version='auto')
         
-    def create_container(self, cmd, image=None, is_gpu=False, port=None):
-        if port is not None:
-            self.ports['8888/tcp'] = port
+    def create_container(self, cmd, image=None, is_gpu=False, ports=None, user=""):
+        home_dir = "/vault/"
+        if user != "":
+            home_dir = home_dir + user
+
+        if ports is not None:
+            self.ports['8888/tcp'] = ports[0]
+            self.ports['6006/tcp'] = ports[1]
 
         if is_gpu:
-            c = self.client.containers.run(image, cmd, ports=self.ports, devices=self.gpu_devices, volume_driver=self.nvidia_driver, volumes=self.nvidia_volume, detach=True)
+            c = self.client.containers.run(image, cmd, auto_remove=True, ports=self.ports, devices=self.gpu_devices, volume_driver=self.nvidia_driver, volumes=self.volumes, detach=True, working_dir=home_dir)
         else:
-            c = self.client.containers.run(image, cmd, detach=True)
+            c = self.client.containers.run(image, cmd, auto_remove=True, detach=True, working_dir=home_dir)
             
         return c.id
 

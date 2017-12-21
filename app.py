@@ -1,44 +1,54 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
 import logging
-from cw_libs import clearwaters_docker as cwd
-import commands
-from models import db, Ports
+import nvdocker
+from flask_sqlalchemy import SQLAlchemy
+from models import InstanceAssigment, Base
 import random
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/gpu_cluster.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/gpu_cluster/gpu_cluster_instances.db'
 
+instance_store = SQLAlchemy(app)
 CORS(app)
-
-db.init_app(app)
-db.create_all(app=app)
-
 PORT=5656
-docker_client = cwd.CWDockerClient()
+docker_client = nvdocker.NVDockerClient()
+
+@app.before_first_request
+def setup():
+    # Recreate database each time for demo
+    Base.metadata.drop_all(bind=instance_store.engine)
+    Base.metadata.create_all(bind=instance_store.engine)
 
 @app.route('/create_container', methods=['POST'])
-def update_acm_request():
+def create_container():
     if not request.json or 'image' not in request.json:
         abort(400)
 
-    port = get_port()
-    
-    c_id = docker_client.create_container('', image = request.json['image'], is_gpu = True, port = port)
-    token = docker_client.run_cmd(c_id, 'python ../jupyter_get.py')
-    url = "http://vault.acm.illinois.edu:{}/?token={}".format(port, token)
-    docker_port = Ports(port, url)
-    db.session.add(docker_port)
-    db.session.commit()
-    
-    return jsonify({'jupyter_url' : url})
+    jport = get_port()
+    mport = get_port()
+    while jport == mport:
+        mport = get_port()
+
+    user = ""    
+    if 'user' in request.json:
+        user = request.json['user']
+
+    c_id = docker_client.create_container('', image = request.json['image'], is_gpu = True, ports = (jport,mport), user = user)
+    token = docker_client.run_cmd(c_id, 'python3 /opt/cluster-container/jupyter_get.py')
+    jurl = "http://vault.acm.illinois.edu:{}/?token={}".format(jport, token.decode("utf-8") )
+    murl = "http://vault.acm.illinois.edu:" + str(mport)
+    instance_store.session.add(InstanceAssigment(jport, mport, jurl, murl, user))   
+    instance_store.session.commit()
+    return jsonify({'jupyter_url' : jurl, 'monitor_url': murl})
 
 def get_port():
     while True:
         rand_port = random.randint(80, 65535)
-        used_ports = Ports.query.filter_by(port = rand_port).first()
-        if (used_ports is None):
+        used_jports = instance_store.session.query(InstanceAssigment).filter_by(jupyter_port = rand_port).first()
+        used_mports = instance_store.session.query(InstanceAssigment).filter_by(monitor_port = rand_port).first()
+        if (used_jports == None) and (used_mports == None):
             return rand_port
     
 if __name__ == "__main__":
