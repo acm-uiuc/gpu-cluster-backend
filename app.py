@@ -71,7 +71,7 @@ def transfer_session():
 
 @app.route('/pubkey', methods=['GET'])
 def get_public_key():
-    return jsonify({'pub_key':pub_key})
+    return jsonify({'pub_key':pub_key.decode("utf-8")})
 
 def verify_session(token):
     session_token = key.decrypt(token)
