@@ -21,3 +21,4 @@ htmlcov
 *,cover
 
 gpu_cluster
+config.py

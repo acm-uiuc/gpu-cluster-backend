@@ -6,4 +6,13 @@ Illinois/NCSA Open Source License.  You should have received a copy of
 this license in a file with the distribution.
 '''
 
-from .nvdocker import NVDockerClient
+'''
+This is a template file, please duplicate this file and 
+fill in the fields with your keys
+
+NEVER COMMIT YOUR API KEYS IN GIT (config.py will be ignored by git)
+'''
+
+config = {
+    "groot_token" : "MY CONSUMER KEY",
+}
