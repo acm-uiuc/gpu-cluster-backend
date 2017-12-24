@@ -29,7 +29,7 @@ docker_client = nvdocker.NVDockerClient()
 
 random_generator = Random.new().read
 key = RSA.generate(1024, random_generator)
-pub_key = key.publickey()
+pub_key = key.publickey().exportKey()
 
 @app.before_first_request
 def setup():
@@ -89,9 +89,9 @@ def verify_session(token):
     
     resp = requests.post('https://api.acm.illinois.edu/session/'+session_token, header=headers, body=payload)
     if resp.status_code != 200:
-        abort(400)
+       return False
 
-    if resp.json['session'] in resp.json:
+    if resp.json['token'] in resp.json:
         return True
     else:
         return False
