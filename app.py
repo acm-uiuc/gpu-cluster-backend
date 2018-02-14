@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from models import InstanceAssigment, Base
 import random
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/gpu_cluster/gpu_cluster_instances.db'
 
@@ -20,6 +20,10 @@ def setup():
     # Recreate database each time for demo
     Base.metadata.drop_all(bind=instance_store.engine)
     Base.metadata.create_all(bind=instance_store.engine)
+
+@app.route('/')
+def serve_ui():
+    return app.send_static_file('frontend/build/index.html')
 
 @app.route('/create_container', methods=['POST'])
 def create_container():
