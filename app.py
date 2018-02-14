@@ -1,18 +1,19 @@
-from flask import Flask, jsonify, request, abort
+from flask import Flask, jsonify, request, abort, send_from_directory
 from flask_cors import CORS
 import logging
 import nvdocker
 from flask_sqlalchemy import SQLAlchemy
 from models import InstanceAssigment, Base
+import os
 import random
 
-app = Flask(__name__, static_url_path='')
+app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/gpu_cluster/gpu_cluster_instances.db'
 
 instance_store = SQLAlchemy(app)
 CORS(app)
-PORT=5656
+PORT=4000
 docker_client = nvdocker.NVDockerClient()
 
 @app.before_first_request
@@ -21,9 +22,10 @@ def setup():
     Base.metadata.drop_all(bind=instance_store.engine)
     Base.metadata.create_all(bind=instance_store.engine)
 
-@app.route('/')
-def serve_ui():
-    return app.send_static_file('frontend/build/index.html')
+@app.route('/', defaults={'path': ''}, methods=['GET'])
+@app.route('/<path:path>')
+def serve_ui(path):
+    return send_from_directory(os.path.dirname(os.path.realpath(__file__)) + "/frontend/build", 'index.html') 
 
 @app.route('/create_container', methods=['POST'])
 def create_container():
