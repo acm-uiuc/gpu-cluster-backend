@@ -6,7 +6,7 @@ class NVDockerClient:
 
     gpu_devices = ['/dev/nvidiactl', '/dev/nvidia-uvm', '/dev/nvidia1', '/dev/nvidia0']
     nvidia_driver = 'nvidia-docker'
-    volumes = {'nvidia_driver_387.12':{'bind':'/usr/local/nvidia', 'mode':'ro'},
+    volumes = {'nvidia_driver_387.34':{'bind':'/usr/local/nvidia', 'mode':'ro'},
                '/vault':              {'bind':'/vault', 'mode':'rw'}}
     ports = {'8888/tcp':8890,
              '6006/tcp':6969}
