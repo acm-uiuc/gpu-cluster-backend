@@ -36,22 +36,34 @@ def create_container():
     if not request.json or 'image' not in request.json:
         abort(400)
 
-    jport = get_port()
+    uport = get_port()
     mport = get_port()
-    while jport == mport:
+    while uport == mport:
         mport = get_port()
 
     user = ""    
     if 'user' in request.json:
         user = request.json['user']
 
-    c_id = docker_client.create_container('', image = request.json['image'], is_gpu = True, ports = (jport,mport), user = user)
-    token = docker_client.run_cmd(c_id, 'python3 /opt/cluster-container/jupyter_get.py')
-    jurl = "http://vault.acm.illinois.edu:{}/?token={}".format(jport, token.decode("utf-8") )
-    murl = "http://vault.acm.illinois.edu:" + str(mport)
-    instance_store.session.add(InstanceAssigment(jport, mport, jurl, murl, user))   
+    token_needed = False
+    if 'token_required' in request.json:
+        token_needed = bool(request.json['token_required'])
+
+    c_id = docker_client.create_container('', image = request.json['image'], is_gpu = True, ports = (uport,mport), user = user)
+    
+    uurl = ""
+    murl = ""
+    if token_needed: 
+        token = docker_client.run_cmd(c_id, 'python3 /opt/cluster-container/jupyter_get.py')
+        uurl = "http://vault.acm.illinois.edu:{}/?token={}".format(uport, token.decode("utf-8") )
+        murl = "http://vault.acm.illinois.edu:" + str(mport)
+    else:
+        uurl = "http://vault.acm.illinois.edu:" + str(uport)
+        murl = "http://vault.acm.illinois.edu:" + str(mport)
+    
+    instance_store.session.add(InstanceAssigment(uport, mport, uurl, murl, user))   
     instance_store.session.commit()
-    return jsonify({'jupyter_url' : jurl, 'monitor_url': murl})
+    return jsonify({'ui_url' : uurl, 'monitor_url': murl})
 
 def get_port():
     while True:
