@@ -5,11 +5,17 @@ import nvdocker
 from flask_sqlalchemy import SQLAlchemy
 from models import InstanceAssigment, Base
 import os
+import argparse
 import random
 import logging
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
+
+parser = argparse.ArgumentParser(description="Stand up an easy to use UI for creating Deep Learning workspaces")
+parser.add_argument('-p', '--port', type=int, default=5656, help='port to run the interface on')
+
+args = parser.parse_args()
 
 app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -17,7 +23,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/gpu_cluster/gpu_cluster_
 
 instance_store = SQLAlchemy(app)
 CORS(app)
-PORT=4000
+PORT=args.port
 docker_client = nvdocker.NVDockerClient()
 
 @app.before_first_request
