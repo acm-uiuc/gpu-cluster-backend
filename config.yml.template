@@ -1,6 +1,0 @@
-port: 5656
-db_location: /tmp
-gpuless: false
-
-#ACM Specific 
-groot_authorization: None

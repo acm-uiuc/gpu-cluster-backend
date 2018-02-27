@@ -9,6 +9,8 @@ import random
 import logging
 import time
 import yaml
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 parser = argparse.ArgumentParser(description="Stand up an easy to use UI for creating Deep Learning workspaces")
 parser.add_argument('-p', '--port', type=int, default=5656, help='port to run the interface on')
@@ -18,7 +20,7 @@ args = parser.parse_args()
 PORT=args.port
 GPULESS = args.gpuless
 DB_LOCATION = '/opt/gpu_cluster/gpu_cluster_instances.db'
-with open("config.yml", 'r') as config_file:
+with open(dir_path + "/config.yml", 'r') as config_file:
     try:
         config = yaml.load(config_file)
         if "port" in config:
