@@ -1,30 +1,52 @@
+import argparse
 from flask import Flask, jsonify, request, abort, send_from_directory
 from flask_cors import CORS
 import logging
-import nvdocker
 from flask_sqlalchemy import SQLAlchemy
 from models import InstanceAssigment, Base
 import os
-import argparse
 import random
 import logging
+import time
+import yaml
+
+parser = argparse.ArgumentParser(description="Stand up an easy to use UI for creating Deep Learning workspaces")
+parser.add_argument('-p', '--port', type=int, default=5656, help='port to run the interface on')
+parser.add_argument('-g', '--gpuless', action='store_true', help='if development is being done on a machine without a gpu')
+args = parser.parse_args()
+
+PORT=args.port
+GPULESS = args.gpuless
+DB_LOCATION = '/opt/gpu_cluster/gpu_cluster_instances.db'
+with open("config.yml", 'r') as config_file:
+    try:
+        config = yaml.load(config_file)
+        if "port" in config:
+            if PORT == 5656 and config["port"] != 5656:
+                PORT = config["port"]
+        if "gpuless" in config:
+            if GPULESS == False and config["gpuless"] == True:
+                GPULESS = True
+        if "db_location" in config:
+            DB_LOCATION = config["db_location"]
+    except yaml.YAMLError as exc:
+        print(exc)
+        pass
+
+docker_client = None
+if not GPULESS:
+    import nvdocker
+    docker_client = nvdocker.NVDockerClient()
 
 log = logging.getLogger('werkzeug')
 log.setLevel(logging.ERROR)
 
-parser = argparse.ArgumentParser(description="Stand up an easy to use UI for creating Deep Learning workspaces")
-parser.add_argument('-p', '--port', type=int, default=5656, help='port to run the interface on')
-
-args = parser.parse_args()
-
 app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////opt/gpu_cluster/gpu_cluster_instances.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + DB_LOCATION
 
 instance_store = SQLAlchemy(app)
 CORS(app)
-PORT=args.port
-docker_client = nvdocker.NVDockerClient()
 
 @app.before_first_request
 def setup():
@@ -66,6 +88,38 @@ def create_container():
     else:
         uurl = "http://vault.acm.illinois.edu:" + str(uport)
         murl = "http://vault.acm.illinois.edu:" + str(mport)
+    
+    instance_store.session.add(InstanceAssigment(uport, mport, uurl, murl, user))   
+    instance_store.session.commit()
+    return jsonify({'ui_url' : uurl, 'monitor_url': murl})
+
+@app.route('/dummy_create_container', methods=['POST'])
+def dummy_create_container():
+    time.sleep(5)
+    if not request.json or 'image' not in request.json:
+        abort(400)
+
+    uport = get_port()
+    mport = get_port()
+    while uport == mport:
+        mport = get_port()
+
+    user = ""    
+    if 'user' in request.json:
+        user = request.json['user']
+
+    token_needed = False
+    if 'token_required' in request.json:
+        token_needed = bool(request.json['token_required'])
+    
+    uurl = ""
+    murl = ""
+    if token_needed: 
+        uurl = "http://google.com"
+        murl = "http://google.com"
+    else:
+        uurl = "http://google.com"
+        murl = "http://google.com"
     
     instance_store.session.add(InstanceAssigment(uport, mport, uurl, murl, user))   
     instance_store.session.commit()

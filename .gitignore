@@ -15,6 +15,7 @@ _mailinglist
 .idea/
 frontend/
 config.py
+config.yml
 
 # Coverage reports
 htmlcov
