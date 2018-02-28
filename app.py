@@ -9,7 +9,6 @@ import random
 import logging
 import time
 import yaml
-from gpu_cluster.controllers import cluster, dummy_cluster, create_docker_client
 from gpu_cluster.database import init_db, db_session
 from config import config
 
@@ -18,7 +17,7 @@ Parse any command line arguments
 '''
 parser = argparse.ArgumentParser(description="Stand up an easy to use UI for creating Deep Learning workspaces")
 parser.add_argument('-p', '--port', type=int, default=5656, help='port to run the interface on')
-parser.add_argument('-g', '--gpuless', action='store_true', help='if development is being done on a machine without a gpu')
+parser.add_argument('-l', '--gpuless', action='store_true', help='if development is being done on a machine without a gpu')
 parser.add_argument('-d', '--debug', action='store_true', help='if in debug mode')
 args = parser.parse_args()
 
@@ -51,11 +50,14 @@ app.config['CELERY_RESULT_BACKEND'] = config["redis"]
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
+routes = None
 if GPULESS:
-    app.register_blueprint(dummy_cluster)
+    from gpu_cluster.controllers import DummyCluster
+    routes = DummyCluster()
 else:
-    create_docker_client()
-    app.register_blueprint(cluster)
+    from gpu_cluster.controllers import GPUCluster
+    routes = GPUCluster()
+routes.register_routes(app)
 
 if not DEBUG:
     '''
