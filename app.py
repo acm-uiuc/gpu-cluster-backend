@@ -4,14 +4,13 @@ from flask_cors import CORS
 from celery import Celery
 import logging
 from flask_sqlalchemy import SQLAlchemy
-from models import Instance, Base
 import os
 import random
 import logging
 import time
 import yaml
-from cluster_api import cluster_api
-from db_connector import init_db, db_session
+from gpu_cluster.controllers import cluster, dummy_cluster, create_docker_client
+from gpu_cluster.database import init_db, db_session
 from config import config
 
 '''
@@ -20,10 +19,13 @@ Parse any command line arguments
 parser = argparse.ArgumentParser(description="Stand up an easy to use UI for creating Deep Learning workspaces")
 parser.add_argument('-p', '--port', type=int, default=5656, help='port to run the interface on')
 parser.add_argument('-g', '--gpuless', action='store_true', help='if development is being done on a machine without a gpu')
+parser.add_argument('-d', '--debug', action='store_true', help='if in debug mode')
 args = parser.parse_args()
 
-PORT=args.port
+PORT = args.port
 GPULESS = args.gpuless
+DEBUG = args.debug
+
 '''
 Fill in any other unconfigured settings with config.yml fields
 '''
@@ -34,20 +36,6 @@ if "port" in config:
 if "gpuless" in config:
     if GPULESS == False and config["gpuless"] == True:
         GPULESS = True
-
-'''
-Only import nvdocker if there are gpus to run with
-'''
-docker_client = None
-if not GPULESS:
-    import nvdocker
-    docker_client = nvdocker.NVDockerClient()
-
-'''
-Suppress Logging to the terminal
-'''
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
 
 '''
 Create app
@@ -63,8 +51,18 @@ app.config['CELERY_RESULT_BACKEND'] = config["redis"]
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
+if GPULESS:
+    app.register_blueprint(dummy_cluster)
+else:
+    create_docker_client()
+    app.register_blueprint(cluster)
 
-app.register_blueprint(cluster_api)
+if not DEBUG:
+    '''
+    Suppress Logging to the terminal
+    '''
+    log = logging.getLogger('werkzeug')
+    log.setLevel(logging.ERROR)
 
 CORS(app)
 
