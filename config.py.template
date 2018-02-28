@@ -1,0 +1,11 @@
+config = {
+            "port": 5656,
+            "db": "/Users/naren/Developer/gpu-cluster/gpu_cluster_instances.db",
+            "gpuless": False,
+            "redis": "redis://localhost:6379/0"
+        }
+
+#ACM Specific 
+acm_config = {
+    "groot_authorization": None
+}
