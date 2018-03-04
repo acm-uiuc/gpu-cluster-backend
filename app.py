@@ -10,7 +10,7 @@ import random
 import logging
 import time
 import yaml
-from gpu_cluster.controllers import ClusterAPI
+from gpu_cluster.routes import ClusterAPI
 from gpu_cluster.database import init_db, db_session
 from config import config
 
@@ -26,8 +26,6 @@ args = parser.parse_args()
 
 if args.cpu == True and args.gpu == True:
     sys.exit("Error: Cannot select both GPU and CPU-Only systems")
-
-
 
 PORT = args.port
 GPULESS = not args.gpu and args.cpu
@@ -56,14 +54,14 @@ app.config['CELERY_RESULT_BACKEND'] = config["redis"]
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
-supervisor = None
+controller = None
 if GPULESS:
-    from gpu_cluster.supervisor import CPUContainerSupervisor
-    supervisor = CPUContainerSupervisor(config)
+    from gpu_cluster.controllers import CPUContainerController
+    controller = CPUContainerController(config)
 else:
-    from gpu_cluster.supervisor import GPUContainerSupervisor
-    supervisor = GPUContainerSupervisor(config)
-ClusterAPI(supervisor).register_routes(app)
+    from gpu_cluster.controllers import GPUContainerController
+    controller = GPUContainerController(config)
+ClusterAPI(controller).register_routes(app)
 
 
 if not DEBUG:

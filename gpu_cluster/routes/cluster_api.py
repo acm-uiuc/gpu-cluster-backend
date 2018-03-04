@@ -6,9 +6,9 @@ from ..models import Instance
 from flask import Flask, jsonify, request, abort 
 
 class ClusterAPI():
-    def __init__(self, supervisor):
+    def __init__(self, controller):
         super().__init__()
-        self.supervisor = supervisor
+        self.controller = controller
 
     def create_container(self):
         if not request.json:
@@ -18,14 +18,14 @@ class ClusterAPI():
             if f not in request.json: 
                 abort(400)
 
-        cid, ui_url, murl = self.supervisor.create_container(request.json['image'],  token_required=request.json['token_required'])#, user=request.json['user'], budget=request.json['budget'] )
+        cid, ui_url, murl = self.controller.create_container(request.json['image'],  token_required=request.json['token_required'])#, user=request.json['user'], budget=request.json['budget'] )
         return jsonify({'cid': cid, 'ui_url' : ui_url, 'monitor_url': murl})
 
     def confirm_launch(self):
         if not request.json or 'cid' not in request.json:
             abort(400)        
         
-        launched = self.supervisor.verify_launch(request.json["cid"])
+        launched = self.controller.launch_container(request.json["cid"])
 
         if launched == False:
             return jsonify({"error" : "non-existant container"})

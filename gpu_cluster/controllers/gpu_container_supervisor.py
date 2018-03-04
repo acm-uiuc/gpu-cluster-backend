@@ -1,11 +1,9 @@
-from celery import Celery
-from celery.schedules import crontab
 from ..database import db_session
 from ..models import Instance
 from ..nvdocker import NVDockerClient
-from .supervisor import Supervisor
+from .container_controller import ContainerController
 
-class GPUContainerSupervisor(Supervisor):
+class GPUContainerController(ContainerController):
 
     def __init__(self, config):
         super().__init__(config)
