@@ -5,10 +5,12 @@ from celery import Celery
 import logging
 from flask_sqlalchemy import SQLAlchemy
 import os
+import sys
 import random
 import logging
 import time
 import yaml
+from gpu_cluster.controllers import ClusterAPI
 from gpu_cluster.database import init_db, db_session
 from config import config
 
@@ -17,18 +19,23 @@ Parse any command line arguments
 '''
 parser = argparse.ArgumentParser(description="Stand up an easy to use UI for creating Deep Learning workspaces")
 parser.add_argument('-p', '--port', type=int, default=5656, help='port to run the interface on')
-parser.add_argument('-l', '--gpuless', action='store_true', help='if development is being done on a machine without a gpu')
+parser.add_argument('-g', '--gpu', action='store_true', help='if development is being done on a machine with a gpu and NVIDIA Docker')
+parser.add_argument('-c', '--cpu', action='store_true', help='if development is being done on a machine without a gpu or NVIDIA Docker')
 parser.add_argument('-d', '--debug', action='store_true', help='if in debug mode')
 args = parser.parse_args()
 
+if args.cpu == True and args.gpu == True:
+    sys.exit("Error: Cannot select both GPU and CPU-Only systems")
+
+
+
 PORT = args.port
-GPULESS = args.gpuless
+GPULESS = not args.gpu and args.cpu
 DEBUG = args.debug
 
 '''
 Fill in any other unconfigured settings with config.yml fields
 '''
-
 if "port" in config:
     if PORT == 5656 and config["port"] != 5656:
         PORT = config["port"]
@@ -46,18 +53,18 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + config["db"]
 app.config['CELERY_BROKER_URL'] = config["redis"]
 app.config['CELERY_RESULT_BACKEND'] = config["redis"]
 
-
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
 
-routes = None
+supervisor = None
 if GPULESS:
-    from gpu_cluster.controllers import DummyCluster
-    routes = DummyCluster()
+    from gpu_cluster.supervisor import CPUContainerSupervisor
+    supervisor = CPUContainerSupervisor(config)
 else:
-    from gpu_cluster.controllers import GPUCluster
-    routes = GPUCluster()
-routes.register_routes(app)
+    from gpu_cluster.supervisor import GPUContainerSupervisor
+    supervisor = GPUContainerSupervisor(config)
+ClusterAPI(supervisor).register_routes(app)
+
 
 if not DEBUG:
     '''
@@ -76,7 +83,6 @@ def setup():
 @app.route('/<path:path>')
 def serve_ui(path):
     return send_from_directory(os.path.dirname(os.path.realpath(__file__)) + "/frontend/build", 'index.html') 
-
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):

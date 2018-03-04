@@ -1,3 +1,1 @@
-from .dummy_cluster import DummyCluster
-from .cluster import Cluster
-from .gpu_cluster import GPUCluster
+from .cluster_api import ClusterAPI
