@@ -1,3 +1,3 @@
 from .container_controller import ContainerController
-from .cpu_container_supervisor import CPUContainerController
-from .gpu_container_supervisor import GPUContainerController
+from .cpu_container_controller import CPUContainerController
+from .gpu_container_controller import GPUContainerController

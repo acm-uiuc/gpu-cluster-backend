@@ -1,7 +1,7 @@
 from ..database import db_session
 from ..models import Instance
-from ..nvdocker import NVDockerClient
 from .container_controller import ContainerController
+from nvdocker import NVDockerClient
 
 class GPUContainerController(ContainerController):
 
@@ -15,13 +15,24 @@ class GPUContainerController(ContainerController):
         while uport == mport:
             mport = self.get_port()
 
-        c_id = docker_client.create_container('', image = request.json['image'], is_gpu = True, ports = (uport,mport), user = user)
+        container_config = {
+            "ports": {
+                '8888/tcp': uport,
+                '6006/tcp': mport
+            },
+            "working_dir": "/vault",
+            "visible_devices": 0,
+            "detach": True,
+            "auto_remove": True
+        }
+
+        c_id = docker_client.create_container(image, **container_config)
 
         uurl = ""
         murl = ""
         token = ""
         if token_required: 
-            token = docker_client.run_cmd(c_id, 'python3 /opt/cluster-container/jupyter_get.py')
+            token = docker_client.exec_run(c_id, 'python3 /opt/cluster-container/jupyter_get.py')
             uurl = "http://vault.acm.illinois.edu:{}/?token={}".format(uport, token.decode("utf-8") )
             murl = "http://vault.acm.illinois.edu:" + str(mport)
         else:
