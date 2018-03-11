@@ -9,25 +9,41 @@ class GPUContainerController(ContainerController):
         super().__init__(config)
         self.docker_client = NVDockerClient()
     
-    def create_container(image, user="", token_required=False, budget=-1):
+    def create_container(image, user="", token_required=False, budget=-1, num_gpus=1):
+        # Get 2 open ports for UI and Monitor
         uport = self.get_port()
         mport = self.get_port()
         while uport == mport:
             mport = self.get_port()
 
+        # Get select a gpu(s) that are least in use
+        num_available_gpus = len(docker_client.list_gpus())
+        if num_gpus > num_available_gpus:
+            num_gpus = num_available_gpus
+
+        gpus = []
+        memory_usage = docker_client.gpu_memory_usage()
+        for g in num_gpus:
+            for gpu, used in memory_usage.items():
+                if used < memory_usage[gpu[-1]]:
+                    gpus.append(gpu)
+
+        # Assemble config for container 
         container_config = {
             "ports": {
                 '8888/tcp': uport,
                 '6006/tcp': mport
             },
-            "working_dir": "/vault",
-            "visible_devices": 0,
+            "working_dir": "/vault/" + user,
+            "visible_devices": gpus,
             "detach": True,
             "auto_remove": True
         }
 
-        c_id = docker_client.create_container(image, **container_config)
+        #create container
+        c_id = docker_client.create_container(image, **container_config).id
 
+        #assemble endpoints for UI, monitor and get the access token if needed
         uurl = ""
         murl = ""
         token = ""
@@ -39,7 +55,6 @@ class GPUContainerController(ContainerController):
             uurl = "http://vault.acm.illinois.edu:" + str(uport)
             murl = "http://vault.acm.illinois.edu:" + str(mport)
         
-        print(image)
         #TODO insert budget
         budget = -1 
         db_session.add(Instance(c_id, uport, mport, uurl, murl, user, budget, token))   
