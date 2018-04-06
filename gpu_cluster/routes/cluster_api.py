@@ -4,6 +4,8 @@ import time
 from ..database import db_session
 from ..models import Instance
 from flask import Flask, jsonify, request, abort 
+from nvdocker import NVDockerClient
+import socket
 
 class ClusterAPI():
     def __init__(self, controller):
@@ -29,10 +31,19 @@ class ClusterAPI():
 
         if launched == False:
             return jsonify({"error" : "non-existant container"})
-        return jsonify({"verified" : "confirmed"})    
-
+        return jsonify({"verified" : "confirmed"})
+    
     def kill_container(self):
         pass
+
+    def status(self):
+        hostname = socket.gethostname()
+        available_gpu = NVDockerClient.least_used_gpu()
+        response  = {
+            "hostname" : hostname,
+            "gpu" : available_gpu
+        }
+        return jsonify(response)
 
     def register_routes(self, app):
         app.add_url_rule('/create_container', 'create_container', self.create_container, methods=['POST'])

@@ -37,7 +37,6 @@ class ContainerController(abc.ABC):
     '''
     STATUS QUERIERS
     '''
-
     def verify_launch(self, c_id):
         instance = db_session.query(Instance).filter_by(cid = c_id).first() 
         return True if instance.launched == True else False
