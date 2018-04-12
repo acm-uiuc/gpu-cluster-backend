@@ -49,4 +49,4 @@ class ClusterAPI():
         app.add_url_rule('/create_container', 'create_container', self.create_container, methods=['POST'])
         app.add_url_rule('/confirm',          'confirm',          self.confirm_launch,   methods=['POST'])
         app.add_url_rule('/kill_container',   'kill_container',   self.kill_container,   methods=['POST'])
-
+        app.add_url_rule('/status',   'status',   self.status,   methods=['GET'])
