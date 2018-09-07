@@ -4,6 +4,7 @@ from ..database import db_session
 from ..models import Instance
 from .container_controller import ContainerController
 import docker
+import datetime
 
 class CPUContainerController(ContainerController):
 
@@ -37,7 +38,8 @@ class CPUContainerController(ContainerController):
         print(image)
         
         #TODO insert budget
-        db_session.add(Instance(c_id, uport, mport, uurl, murl, user, budget, token))   
+        start_time = datetime.datetime()
+        db_session.add(Instance(c_id, uport, mport, uurl, murl, user, budget, start_time, token))   
         db_session.commit()
         return c_id, uurl, murl
 

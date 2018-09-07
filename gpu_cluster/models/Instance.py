@@ -17,7 +17,7 @@ class Instance(Base):
     launched =      Column(Boolean)
     token =         Column(String, nullable=True)
     
-    def __init__(self, cid,  uiport, mport, ui_link, monitor_link, user, budget, token):
+    def __init__(self, cid,  uiport, mport, ui_link, monitor_link, user, budget, start_time, token):
         self.cid =  cid
         self.ui_port = uiport
         self.monitor_port = mport
@@ -25,6 +25,7 @@ class Instance(Base):
         self.monitory_link = monitor_link
         self.user = user
         self.budget = budget
+        self.start_time = start_time
         self.launched = False
         self.token = token
 
