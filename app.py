@@ -44,6 +44,7 @@ if "gpuless" in config:
 '''
 Create app
 '''
+
 app = Flask(__name__, static_folder='frontend/build', static_url_path='')
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
