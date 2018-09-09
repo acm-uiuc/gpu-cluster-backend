@@ -10,6 +10,10 @@ class GPUContainerController(ContainerController):
         self.docker_client = NVDockerClient()
     
     def create_container(image, user="", token_required=False, budget=-1, num_gpus=1):
+        if docker_client.least_used_gpu() == None :
+            #TODO Add handle multi node functionality here
+            pass
+        
         # Get 2 open ports for UI and Monitor
         uport = self.get_port()
         mport = self.get_port()
@@ -17,17 +21,15 @@ class GPUContainerController(ContainerController):
             mport = self.get_port()
 
         # Get select a gpu(s) that are least in use
-        num_available_gpus = len(docker_client.list_gpus())
+        num_available_gpus = len(docker_client.list_gpus().keys())
         if num_gpus > num_available_gpus:
             num_gpus = num_available_gpus
 
         gpus = []
-        memory_usage = docker_client.gpu_memory_usage()
         for g in num_gpus:
-            for gpu, used in memory_usage.items():
-                if used < memory_usage[gpu[-1]]:
-                    gpus.append(gpu)
-
+            if docker_client.gpu_memory_usage(g) > 0:
+                gpus.append(g)
+                
         # Assemble config for container 
         container_config = {
             "ports": {
