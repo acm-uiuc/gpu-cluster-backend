@@ -3,7 +3,8 @@ config = {
             "db": "/Users/naren/Developer/gpu-cluster/gpu_cluster_instances.db",
             "gpuless": False,
             "redis": "redis://localhost:6379/0",
-            "price_per_hour": -1
+            "price_per_hour": -1,
+            "domain_name": "vault.acm.illinois.edu"
         }
 
 #ACM Specific 

@@ -7,6 +7,7 @@ class GPUContainerController(ContainerController):
 
     def __init__(self, config):
         super().__init__(config)
+        self.config = config;
         self.docker_client = NVDockerClient()
     
     def create_container(self, image, user="", token_required=False, budget=-1, num_gpus=1):
@@ -51,11 +52,12 @@ class GPUContainerController(ContainerController):
         token = ""
         if token_required: 
             token = self.docker_client.exec_run(c_id, 'python3 /opt/cluster-container/jupyter_get.py')
-            uurl = "http://vault.acm.illinois.edu:{}/?token={}".format(uport, token.decode("utf-8") )
-            murl = "http://vault.acm.illinois.edu:" + str(mport)
+            base_url = "http://{}".format(self.config["domain_name"])
+            uurl = "{}:{}/?token={}".format(base_url, uport, token.decode("utf-8") )
+            murl = base_url + str(mport)
         else:
-            uurl = "http://vault.acm.illinois.edu:" + str(uport)
-            murl = "http://vault.acm.illinois.edu:" + str(mport)
+            uurl = base_url + str(uport)
+            murl = base_url + str(uport)
         
         #TODO insert budget
         budget = -1 
