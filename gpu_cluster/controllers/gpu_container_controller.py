@@ -57,7 +57,7 @@ class GPUContainerController(ContainerController):
             murl = base_url + str(mport)
         else:
             uurl = base_url + str(uport)
-            murl = base_url + str(uport)
+            murl = base_url + str(mport)
         
         #TODO insert budget
         budget = -1 
