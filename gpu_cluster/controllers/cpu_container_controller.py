@@ -13,10 +13,10 @@ class CPUContainerController(ContainerController):
         self.client = docker.from_env(version='auto')
 
     def create_container(self, image, user="", token_required=False, budget=-1):
-        uport = self.get_port()
-        mport = self.get_port()
+        uport = super().get_port()
+        mport = super().get_port()
         while uport == mport:
-            mport = self.get_port()
+            mport = super().get_port()
 
         ports = {'8888/tcp': uport,
                  '6006/tcp': mport}

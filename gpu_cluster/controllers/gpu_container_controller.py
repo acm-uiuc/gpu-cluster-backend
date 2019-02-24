@@ -12,10 +12,10 @@ class GPUContainerController(ContainerController):
 
     def create_container(image, user="", token_required=False, budget=-1, num_gpus=1):
         # Get 2 open ports for UI and Monitor
-        uport = self.get_port()
-        mport = self.get_port()
+        uport = super().get_port()
+        mport = super().get_port()
         while uport == mport:
-            mport = self.get_port()
+            mport = super().get_port()
 
         # Get select a gpu(s) that are least in use
         num_available_gpus = len(docker_client.list_gpus())
