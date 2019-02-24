@@ -23,11 +23,9 @@ class GPUContainerController(ContainerController):
             num_gpus = num_available_gpus
 
         gpus = []
-        memory_usage = NVDockerClient.gpu_memory_usage()
-        for g in num_gpus:
-            for gpu, used in memory_usage.items():
-                if used < memory_usage[gpu[-1]]:
-                    gpus.append(gpu)
+        for g in range(num_gpus):
+            if NVDockerClient.gpu_memory_usage(g)["free_mb"] > 0:
+                gpus.append(g)
 
         # Assemble config for container
         container_config = {
