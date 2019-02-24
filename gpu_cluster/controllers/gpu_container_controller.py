@@ -41,8 +41,9 @@ class GPUContainerController(ContainerController):
 
         # create container
         container_list = self.docker_client.docker_image_list(filters={'name': image})
+        print(image)
         if container_list:
-            c_id = self.docker_client.run(image, '', container_config).id
+            c_id = self.docker_client.create_container(image, **container_config).id
 
         else:
             # Add a client.images.search to check if the path to the container exists on docker hub. If not, error out
@@ -57,6 +58,7 @@ class GPUContainerController(ContainerController):
             # If pull returns more than one image, get the first one in the list
             if hasattr(docker_image, '__len__'):
                 docker_image = docker_image[0]
+            print(docker_image)
 
             # Do you have to build the image after you pull it from Docker Hub?
             c_id = self.docker_client.create_container(docker_image, **container_config).id
