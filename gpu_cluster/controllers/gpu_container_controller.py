@@ -41,7 +41,21 @@ class GPUContainerController(ContainerController):
         }
 
         #create container
-        c_id = docker_client.create_container(image, **container_config).id
+        c#create container
+        container_list = docker_client.docker_image_list(filters={'name': image})
+        if container_list:
+            c_id = docker_client.run(image, '', container_config).id
+
+        else:
+            # Add a client.images.search to check if the path to the container exists on docker hub. If not, error out
+            docker_image = docker_client.docker_image_pull()
+
+            # If pull returns more than one image, get the first one in the list
+            if hasattr(docker_image, '__len__'):
+                docker_image = docker_image[0]
+
+            # Do you have to build the image after you pull it from Docker Hub?
+            c_id = docker_client.create_container(docker_image, '', container_config).id
 
         #assemble endpoints for UI, monitor and get the access token if needed
         uurl = ""

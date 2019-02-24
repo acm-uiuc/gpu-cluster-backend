@@ -30,6 +30,7 @@ if args.cpu == True and args.gpu == True:
 PORT = args.port
 GPULESS = not args.gpu and args.cpu
 DEBUG = args.debug
+print(GPULESS)
 
 '''
 Fill in any other unconfigured settings with config.yml fields

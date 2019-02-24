@@ -21,7 +21,20 @@ class CPUContainerController(ContainerController):
                  '6006/tcp':mport}
 
         print(image)
-        c_id = self.client.containers.run(image, "", auto_remove=True, detach=True, ports=ports).id
+        container_list = self.client.containers.list(filters={'name': image})
+        if container_list:
+            c_id = self.client.containers.run(image, "", auto_remove=True, detach=True, ports=ports).id
+
+        else:
+            # Add a client.images.search to check if the path to the container exists on docker hub. If not, error out
+            docker_image = self.client.images.pull()
+
+            # If pull returns more than one image, get the first one in the list
+            if hasattr(docker_image, '__len__'):
+                docker_image = docker_image[0]
+
+            # Do you have to build the image after you pull it from Docker Hub?
+            c_id = self.client.containers.run(docker_image, '', auto_remove=True, detach=True, ports=ports).id
         print(c_id)
 
         uurl = ""
