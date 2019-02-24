@@ -18,12 +18,12 @@ class GPUContainerController(ContainerController):
             mport = super().get_port()
 
         # Get select a gpu(s) that are least in use
-        num_available_gpus = len(docker_client.list_gpus())
+        num_available_gpus = len(NVDockerClient.gpu_info())
         if num_gpus > num_available_gpus:
             num_gpus = num_available_gpus
 
         gpus = []
-        memory_usage = docker_client.gpu_memory_usage()
+        memory_usage = NVDockerClient.gpu_memory_usage()
         for g in num_gpus:
             for gpu, used in memory_usage.items():
                 if used < memory_usage[gpu[-1]]:
