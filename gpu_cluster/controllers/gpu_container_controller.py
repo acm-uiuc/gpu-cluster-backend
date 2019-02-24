@@ -48,9 +48,13 @@ class GPUContainerController(ContainerController):
 
         else:
             # Add a client.images.search to check if the path to the container exists on docker hub. If not, error out
-            docker_response = docker_client.docker_image_search(image)
-            print(docker_response)
-            docker_image = docker_client.docker_image_pull(image)
+            has_result = docker_client.docker_image_search(image)
+            if not has_result:
+                print('No image in DockerHub')
+                return 'No image in DockerHub' , '', ''
+
+            image_tag = image.split(':')
+            docker_image = docker_client.docker_image_pull(image_tag[0], image_tag[1])
 
             # If pull returns more than one image, get the first one in the list
             if hasattr(docker_image, '__len__'):

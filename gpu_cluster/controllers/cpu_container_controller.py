@@ -23,17 +23,18 @@ class CPUContainerController(ContainerController):
 
         print(image)
         container_list = self.client.containers.list(filters={'name': image})
-        print(image + "test")
-
         if container_list:
             c_id = self.client.containers.run(image, "", auto_remove=True, detach=True, ports=ports).id
 
         else:
             # Add a client.images.search to check if the path to the container exists on docker hub. If not, error out
-            # docker_result = self.client.images.search(image)
-            # print(docker_result)
+            has_result = self.client.images.search(image)
+            if not has_result:
+                print('No image in DockerHub')
+                return 'No image in DockerHub' , '', ''
+
             image_tag = image.split(':')
-            docker_image = self.client.images.pull('illiyan/test_container', 'latest')
+            docker_image = self.client.images.pull(image_tag[0], image_tag[1])
 
             # If pull returns more than one image, get the first one in the list
             if hasattr(docker_image, '__len__'):
