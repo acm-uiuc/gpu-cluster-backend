@@ -59,7 +59,7 @@ class GPUContainerController(ContainerController):
                 docker_image = docker_image[0]
 
             # Do you have to build the image after you pull it from Docker Hub?
-            c_id = self.docker_client.create_container(docker_image, '', container_config).id
+            c_id = self.docker_client.create_container(docker_image, **container_config).id
 
         # assemble endpoints for UI, monitor and get the access token if needed
         uurl = ""
