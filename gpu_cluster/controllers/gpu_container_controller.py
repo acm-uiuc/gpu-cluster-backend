@@ -7,7 +7,6 @@ class GPUContainerController(ContainerController):
 
     def __init__(self, config):
         super().__init__(config)
-        self.config = config;
         self.docker_client = NVDockerClient()
     
     def create_container(self, image, user="", token_required=False, budget=-1, num_gpus=1):
