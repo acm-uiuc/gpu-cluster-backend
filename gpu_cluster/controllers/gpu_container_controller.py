@@ -49,9 +49,9 @@ class GPUContainerController(ContainerController):
         uurl = ""
         murl = ""
         token = ""
+        base_url = "http://{}".format(self.config["domain_name"])
         if token_required: 
             token = self.docker_client.exec_run(c_id, 'python3 /opt/cluster-container/jupyter_get.py')
-            base_url = "http://{}".format(self.config["domain_name"])
             uurl = "{}:{}/?token={}".format(base_url, uport, token.decode("utf-8") )
             murl = base_url + str(mport)
         else:
