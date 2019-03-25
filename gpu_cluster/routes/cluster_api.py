@@ -21,6 +21,9 @@ class ClusterAPI():
                 abort(400)
 
         cid, ui_url, murl = self.controller.create_container(request.json['image'],  token_required=request.json['token_required'])#, user=request.json['user'], budget=request.json['budget'] )
+        if ui_url == '' or murl == '':
+            abort(400)
+
         return jsonify({'cid': cid, 'ui_url' : ui_url, 'monitor_url': murl})
 
     def confirm_launch(self):
