@@ -49,13 +49,14 @@ class GPUContainerController(ContainerController):
         uurl = ""
         murl = ""
         token = ""
+        base_url = "http://{}".format(self.config["domain_name"])
         if token_required: 
             token = self.docker_client.exec_run(c_id, 'python3 /opt/cluster-container/jupyter_get.py')
-            uurl = "http://vault.acm.illinois.edu:{}/?token={}".format(uport, token.decode("utf-8") )
-            murl = "http://vault.acm.illinois.edu:" + str(mport)
+            uurl = "{}:{}/?token={}".format(base_url, uport, token.decode("utf-8") )
+            murl = base_url + str(mport)
         else:
-            uurl = "http://vault.acm.illinois.edu:" + str(uport)
-            murl = "http://vault.acm.illinois.edu:" + str(mport)
+            uurl = base_url + str(uport)
+            murl = base_url + str(mport)
         
         #TODO insert budget
         budget = -1 
