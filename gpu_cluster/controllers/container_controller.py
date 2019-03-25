@@ -13,6 +13,7 @@ class ContainerController(abc.ABC):
     '''
     def __init__(self, config):
         super().__init__()
+        self.config = config
         self.hourly_rate = config["price_per_hour"]
 
     '''

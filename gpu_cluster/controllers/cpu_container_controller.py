@@ -46,14 +46,15 @@ class CPUContainerController(ContainerController):
 
         uurl = ""
         murl = ""
-        if token_required:
+        base_url = "http://{}".format(self.config["domain_name"])
+        if token_required: 
             c = self.client.containers.get(c_id)
             token = c.exec_run('python3 /opt/cluster-container/jupyter_get.py')
-            uurl = "http://localhost:{}/?token={}".format(uport, token.decode("utf-8"))
-            murl = "http://localhost:" + str(mport)
+            uurl = "{}:{}/?token={}".format(base_url, uport, token.decode("utf-8") )
+            murl = base_url + str(mport)
         else:
-            uurl = "http://localhost:" + str(uport)
-            murl = "http://localhost:" + str(mport)
+            uurl = base_url + str(uport)
+            murl = base_url + str(mport)
         print(image)
         # TODO insert budget
         db_session.add(Instance(c_id, uport, mport, uurl, murl, user, budget, token))
